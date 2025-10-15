@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+
 import 'package:hive_database/box/boxes.dart';
 import 'package:hive_database/models/note_models.dart';
-import 'package:hive_database/show_note_screen.dart';
+import 'package:hive_flutter/adapters.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -57,8 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 data.save();
                 titleController.clear();
                 descriptionController.clear();
-
-                ShowNoteScreen();
+                Navigator.pop(context);
               },
               child: const Text('Save'),
             ),
@@ -72,7 +71,29 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(centerTitle: true, title: const Text('Hive Database')),
-      body: Column(children: []),
+      body: ValueListenableBuilder<Box<NoteModels>>(
+        valueListenable: Boxes.getData().listenable(),
+
+        builder: (context, box, _) {
+          final notes = box.values.toList().cast<NoteModels>();
+          return ListView.builder(
+            itemCount: notes.length,
+            itemBuilder: (context, index) {
+              final note = notes[index];
+              return ListTile(
+                title: Text(note.title.toString()),
+                subtitle: Text(note.description.toString()),
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: () {
+                    notes[index].delete();
+                  },
+                ),
+              );
+            },
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           await _showDialog();
