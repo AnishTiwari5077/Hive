@@ -54,11 +54,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
                 final box = Boxes.getData();
                 box.add(data);
-                //box.save();
-
+                data.save();
                 titleController.clear();
                 descriptionController.clear();
-                Navigator.pop(context);
 
                 ShowNoteScreen();
               },
