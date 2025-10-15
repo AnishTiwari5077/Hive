@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:hive_database/box/boxes.dart';
+import 'package:hive_database/models/note_models.dart';
+import 'package:hive_database/show_note_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -9,30 +12,72 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final titleController = TextEditingController();
+  final descriptionController = TextEditingController();
+
+  Future<void> _showDialog() {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Add Note'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleController,
+                  decoration: const InputDecoration(hintText: 'Title'),
+                ),
+
+                TextField(
+                  controller: descriptionController,
+                  decoration: const InputDecoration(hintText: 'Description'),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                titleController.clear();
+                descriptionController.clear();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                final data = NoteModels(
+                  title: titleController.text,
+                  description: descriptionController.text,
+                );
+                final box = Boxes.getData();
+                box.add(data);
+                //box.save();
+
+                titleController.clear();
+                descriptionController.clear();
+                Navigator.pop(context);
+
+                ShowNoteScreen();
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(centerTitle: true, title: const Text('Hive Database')),
-      body: Column(
-        children: [
-          FutureBuilder(
-            future: Hive.openBox('mybox'),
-            builder: (context, snapshot) {
-              return Text(snapshot.data!.get('name').toString());
-            },
-          ),
-        ],
-      ),
+      body: Column(children: []),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          var box = await Hive.openBox('mybox');
-
-          box.put('name', 'flutter');
-          box.put('age', 20);
-
-          print(box.get('name'));
-          print(box.get('age'));
-          //  box.close();
+          await _showDialog();
         },
         child: const Icon(Icons.add),
       ),
